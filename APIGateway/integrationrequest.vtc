@@ -1,0 +1,6 @@
+#set($inputJson = $util.escapeJavaScript($input.body).replaceAll("\\'","'"))
+{
+  "input": "$inputJson",
+  "name": "TestFromAPIGateway",
+  "stateMachineArn": "arn:aws:states:eu-west-2:288211841183:stateMachine:newwavebiotech_crossflowfiltration_inferencemodel"
+}

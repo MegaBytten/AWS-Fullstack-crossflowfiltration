@@ -1,0 +1,7 @@
+#set($inputRoot = $input.path('$'))
+
+{
+  "input": "$inputRoot.input",
+  "response": "$inputRoot.output",
+  "status": "$inputRoot.status"
+}

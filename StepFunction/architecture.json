@@ -1,0 +1,107 @@
+{
+    "Comment": "StepFunction JSON to deploy an end-to-end java based crossflow filtration model with Auth/Authz",
+    "StartAt": "Token Authn",
+    "States": {
+      "Token Authn": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "OutputPath": "$.Payload",
+        "Parameters": {
+          "Payload.$": "$",
+          "FunctionName": "arn:aws:lambda:region:++"
+        },
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "Lambda.ServiceException",
+              "Lambda.AWSLambdaException",
+              "Lambda.SdkClientException",
+              "Lambda.TooManyRequestsException"
+            ],
+            "IntervalSeconds": 1,
+            "MaxAttempts": 3,
+            "BackoffRate": 2
+          }
+        ],
+        "Next": "Choice"
+      },
+      "Choice": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Variable": "$.status",
+            "NumericEquals": 0,
+            "Next": "Parallel"
+          }
+        ],
+        "Default": "Fail"
+      },
+      "Parallel": {
+        "Type": "Parallel",
+        "Branches": [
+          {
+            "StartAt": "Java Model Compute",
+            "States": {
+              "Java Model Compute": {
+                "Type": "Task",
+                "Resource": "arn:aws:states:::lambda:invoke",
+                "OutputPath": "$.Payload",
+                "Parameters": {
+                  "Payload.$": "$",
+                  "FunctionName": "arn:aws:lambda:region:++"
+                },
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                      "Lambda.ServiceException",
+                      "Lambda.AWSLambdaException",
+                      "Lambda.SdkClientException",
+                      "Lambda.TooManyRequestsException"
+                    ],
+                    "IntervalSeconds": 1,
+                    "MaxAttempts": 3,
+                    "BackoffRate": 2
+                  }
+                ],
+                "End": true
+              }
+            }
+          },
+          {
+            "StartAt": "DynamoDB Data Upload",
+            "States": {
+              "DynamoDB Data Upload": {
+                "Type": "Task",
+                "Resource": "arn:aws:states:::lambda:invoke",
+                "OutputPath": "$.Payload",
+                "Parameters": {
+                  "Payload.$": "$",
+                  "FunctionName": "arn:aws:lambda:region:++"
+                },
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                      "Lambda.ServiceException",
+                      "Lambda.AWSLambdaException",
+                      "Lambda.SdkClientException",
+                      "Lambda.TooManyRequestsException"
+                    ],
+                    "IntervalSeconds": 1,
+                    "MaxAttempts": 3,
+                    "BackoffRate": 2
+                  }
+                ],
+                "End": true
+              }
+            }
+          }
+        ],
+        "End": true
+      },
+      "Fail": {
+        "Type": "Fail",
+        "Error": "403",
+        "Cause": "Failed Authentication"
+      }
+    }
+  }
